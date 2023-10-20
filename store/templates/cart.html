@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% load cart %}
+{% load custom_filter %}
+<div class="container">
+   <div class="border rounded p-4 m-4">
+        <p class="display-4 pl-4 ml-4 btn btn-success rounded-pill">Your Cart</p>
+        <hr>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Sno.</th>
+                    <th>Image</th>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                {% for product in products %}
+                <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td><img style="height: 80px;" class="rounded-circle" src="{{product.image.url}}" alt=""></td>
+                    <td>{{product.name}}</td>
+                    <td>{{product.price|currency}}</td>
+                    <td>{{product|cart_quantity:request.session.cart}}</td>
+                    <td>{{product|price_total:request.session.cart|currency}}</td>
+                </tr>
+
+                {% endfor %}
+               
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="4"></th>
+                    <th class="" colspan="">Total</th>
+                    <th>{{products|total_cart_price:request.session.cart|currency}}</th>
+                </tr>
+            </tfoot>
+        </table>
+        <hr>
+        <div class="m-3 p-3">
+            <a href="#" data-toggle="modal" data-target="#exampleModal" class="btn btn-outline-success border rounded  col-lg-3 float-right">Check out</a>
+            <a href="https://merchant.razorpay.com/policy/MSLrQsoeyhwEne/privacy">Privacy and Policy</a>
+            <a href="https://merchant.razorpay.com/policy/MSLrQsoeyhwEne/terms">Terms and Conditions</a>
+            <a href="https://merchant.razorpay.com/policy/MSLrQsoeyhwEne/refund">Refund and Policy</a>
+            <a href="https://merchant.razorpay.com/policy/MSLrQsoeyhwEne/shipping">Shipping Policy</a>
+            <a href="https://merchant.razorpay.com/policy/MSLrQsoeyhwEne/contact_us">Contact Us</a>
+          </div>
+   </div>
+</div>
+
+
+<!-- modal -->
+
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">
+              Check Out Form
+          </h5>
+          <hr>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="m-2 p-3">
+            <form action="/check-out" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                  <label for="">Address</label>
+                  <input type="text" name="address" id="" class="form-control" placeholder="" aria-describedby="helpId">
+                </div>
+                <div class="form-group">
+                    <label for="">Phone</label>
+                    <input type="text" name="phone" id="" class="form-control" placeholder="" aria-describedby="helpId">
+                  </div>
+                  {% comment %} <input type="submit" class="btn float-right btn-outline-success col-lg-6" value="Check out"> {% endcomment %}
+                  <button type="submit" class="btn btn-primary" id="rzp-button1" data-total-price="{{ products|total_cart_price:request.session.cart }}">Pay with Razorpay</button>
+                </form>
+              </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+  document.getElementById('rzp-button1').onclick = function(e){
+    var totalPrice = this.getAttribute('data-total-price');
+    var options = {
+      "key": "rzp_test_6Ualjn8d04L5mF", // Enter the Key ID generated from the Dashboard
+      "amount": totalPrice * 100, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+      "currency": "INR",
+      "name": "Acme Corp", //your business name
+      "description": "Test Transaction",
+      "image": "https://example.com/your_logo",
+      "callback_url": "https://eneqd3r9zrjok.x.pipedream.net/",
+      "prefill": { //We recommend using the prefill parameter to auto-fill customer's contact information especially their phone number
+          "name": "Gaurav Kumar", //your customer's name
+          "email": "gaurav.kumar@example.com",
+          "contact": "9000090000" //Provide the customer's phone number for better conversion rates 
+      },
+      "notes": {
+          "address": "Razorpay Corporate Office"
+      },
+      "theme": {
+          "color": "#3399cc"
+      }
+  };
+      var rzp1 = new Razorpay(options);
+      rzp1.open();
+      e.preventDefault();
+  }
+  </script>
+
+
+{% endblock %}
